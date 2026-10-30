@@ -102,7 +102,7 @@ The Blueprint in `render.yaml` uses Render's free web service and Supabase's fre
 2. In Supabase **Storage**, create a bucket named `notely-private` and leave it **Private**. In Storage settings, enable S3 and create an S3 access key pair. Copy the endpoint and region shown there. Treat the secret key as a server secret: it grants broad storage access and must never be put in browser code or committed to Git.
 3. In Supabase **Database → Connect**, copy a **Session pooler** connection string. Use the session pooler because it supports IPv4 connections from Render and works with Django's persistent DB connections. Keep the password URL-encoded if it contains URL-reserved characters.
 4. Push the project to a Git repository; do not commit `.env`, `db.sqlite3`, or storage keys. In Render, choose **New + → Blueprint**, connect the repository, and apply `render.yaml`.
-5. When Render requests Blueprint environment values, provide `DATABASE_URL`, `PRIVATE_S3_ENDPOINT_URL`, `PRIVATE_S3_REGION`, `PRIVATE_S3_BUCKET` (`notely-private`), `PRIVATE_S3_ACCESS_KEY_ID`, and `PRIVATE_S3_SECRET_ACCESS_KEY`. The Blueprint generates `SECRET_KEY`, runs `collectstatic` and migrations during build, starts one Gunicorn worker, and checks `/healthz/`.
+5. When Render requests Blueprint environment values, provide `DATABASE_URL`, `PRIVATE_S3_ENDPOINT_URL`, `PRIVATE_S3_REGION`, `PRIVATE_S3_BUCKET` (`notely-private`), `PRIVATE_S3_ACCESS_KEY_ID`, and `PRIVATE_S3_SECRET_ACCESS_KEY`. The Blueprint generates `SECRET_KEY`, verifies the CSS source exists, clears and rebuilds collected static files, runs migrations during build, starts one Gunicorn worker, and checks `/healthz/`.
 6. After deploy, use the Render Shell to create the first administrator:
 
    ```sh
@@ -114,6 +114,8 @@ The Blueprint in `render.yaml` uses Render's free web service and Supabase's fre
 This deploy starts with a new Supabase database. It does not copy the local SQLite database or files from `notely-private-storage`; recreate viewer accounts and re-upload the notes after deployment. Keep the local project and private storage as your source copy until you have confirmed the deployed notes.
 
 Render's free web service sleeps after 15 minutes without traffic and can take about a minute to wake. Its local cache is disposable; source files and rendered pages remain in Supabase Storage across Render restarts. Supabase Free projects can pause after a week of low database activity and need to be resumed. Its free database has no backups, and Render's free PostgreSQL expires after 30 days, which is why this Blueprint uses Supabase PostgreSQL instead. Keep your own database and file backups. Free tiers have limited CPU and memory; large PDFs may fail to process, so the Blueprint reduces upload limits to 10 MB and 30 pages.
+
+For bulk entry after the Blueprint is created, fill the blank Supabase values in `.env.render` and choose **Environment → Add from .env** in Render. The bucket name is already set to `notely-private`; create a private bucket with that exact name first. Keep `.env.render` out of Git.
 
 The free Supabase project is a third-party data store for private notes. Use it only if its privacy terms and free-tier availability suit your use case. See [Render free services](https://render.com/docs/free), [Supabase free plan limits](https://supabase.com/pricing), [Supabase S3 authentication](https://supabase.com/docs/guides/storage/s3/authentication), and [Supabase free project pausing](https://supabase.com/docs/guides/platform/free-project-pausing).
 
