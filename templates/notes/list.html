@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block title %}Your notes ? Notely{% endblock %}
+{% block content %}
+<h1>Your notes</h1>
+<div class="note-list">
+  {% for note in notes %}
+    <a class="note-card" href="{% url 'notes:detail' note.slug %}">
+      <strong>{{ note.title }}</strong>
+      <time datetime="{{ note.created_at|date:'c' }}">{{ note.created_at|date:"M j, Y" }}</time>
+    </a>
+  {% empty %}
+    <p class="muted">No notes are available.</p>
+  {% endfor %}
+</div>
+{% endblock %}
